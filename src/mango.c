@@ -93,6 +93,8 @@
 #endif
 #include "common/util.h"
 
+void handlesessionactive(struct wl_listener *listener, void *data);
+
 /* macros */
 #define MAX(A, B) ((A) > (B) ? (A) : (B))
 #define MIN(A, B) ((A) < (B) ? (A) : (B))
@@ -935,6 +937,7 @@ static struct wl_listener request_set_cursor_shape = {.notify = setcursorshape};
 static struct wl_listener request_start_drag = {.notify = requeststartdrag};
 static struct wl_listener start_drag = {.notify = startdrag};
 static struct wl_listener new_session_lock = {.notify = locksession};
+static struct wl_listener session_active = {.notify = handlesessionactive};
 static struct wl_listener drm_lease_request = {.notify = requestdrmlease};
 static struct wl_listener keyboard_shortcuts_inhibit_new_inhibitor = {
 	.notify = handle_keyboard_shortcuts_inhibit_new_inhibitor};
@@ -5077,6 +5080,8 @@ void setup(void) {
 	if (!(backend = wlr_backend_autocreate(event_loop, &session)))
 		die("couldn't create backend");
 
+	wl_signal_add(&session->events.active, &session_active);
+
 	headless_backend = wlr_headless_backend_create(event_loop);
 	if (!headless_backend) {
 		wlr_log(WLR_ERROR, "Failed to create secondary headless backend");
@@ -5487,6 +5492,15 @@ int32_t hidecursor(void *data) {
 void unlocksession(struct wl_listener *listener, void *data) {
 	SessionLock *lock = wl_container_of(listener, lock, unlock);
 	destroylock(lock, 1);
+}
+
+void handlesessionactive(struct wl_listener *listener, void *data) {
+	Client *c;
+	wl_list_for_each(c, &clients, link) {
+		if (c->is_in_scratchpad && !c->is_scratchpad_show) {
+			set_minimized(c);
+		}
+	}
 }
 
 void unmaplayersurfacenotify(struct wl_listener *listener, void *data) {
