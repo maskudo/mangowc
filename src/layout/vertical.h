@@ -282,7 +282,10 @@ void vertical_scroller(Monitor *m) {
 	cur_gappoh =
 		smartgaps && m->visible_scroll_tiling_clients == 1 ? 0 : cur_gappoh;
 
-	int32_t max_client_height = m->w.height - 2 * scroller_structs - cur_gappiv;
+	int32_t target_structs =
+		m->visible_scroll_tiling_clients == 1 ? cur_gappov : scroller_structs;
+
+	int32_t max_client_height = m->w.height - 2 * target_structs;
 
 	n = m->visible_scroll_tiling_clients;
 
@@ -343,9 +346,9 @@ void vertical_scroller(Monitor *m) {
 	for (i = 0; i < n; i++) {
 		c = tempClients[i];
 		if (root_client == c) {
-			if (c->geom.y >= m->w.y + scroller_structs &&
+			if (c->geom.y >= m->w.y + target_structs &&
 				c->geom.y + c->geom.height <=
-					m->w.y + m->w.height - scroller_structs) {
+					m->w.y + m->w.height - target_structs) {
 				need_scroller = false;
 			} else {
 				need_scroller = true;
@@ -386,7 +389,7 @@ void vertical_scroller(Monitor *m) {
 			  (ISSCROLLTILED(m->prevsel) &&
 			   (m->prevsel->scroller_proportion * max_client_height) +
 					   (root_client->scroller_proportion * max_client_height) >
-				   m->w.height - 2 * scroller_structs - cur_gappiv)) &&
+				   m->w.height - 2 * target_structs - cur_gappiv)) &&
 			 scroller_prefer_center)) {
 			target_geom.y = m->w.y + (m->w.height - target_geom.height) / 2;
 		} else {
@@ -394,8 +397,8 @@ void vertical_scroller(Monitor *m) {
 								? m->w.y + (m->w.height -
 											root_client->scroller_proportion *
 												max_client_height -
-											scroller_structs)
-								: m->w.y + scroller_structs;
+											target_structs)
+								: m->w.y + target_structs;
 		}
 		vertical_check_scroller_root_inside_mon(tempClients[focus_client_index],
 												&target_geom);

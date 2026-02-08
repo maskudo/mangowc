@@ -295,7 +295,10 @@ void scroller(Monitor *m) {
 	cur_gappov =
 		smartgaps && m->visible_scroll_tiling_clients == 1 ? 0 : cur_gappov;
 
-	int32_t max_client_width = m->w.width - 2 * scroller_structs - cur_gappih;
+	int32_t target_structs =
+		m->visible_scroll_tiling_clients == 1 ? cur_gappoh : scroller_structs;
+
+	int32_t max_client_width = m->w.width - 2 * target_structs;
 
 	n = m->visible_scroll_tiling_clients;
 
@@ -359,9 +362,9 @@ void scroller(Monitor *m) {
 	for (i = 0; i < n; i++) {
 		c = tempClients[i];
 		if (root_client == c) {
-			if (c->geom.x >= m->w.x + scroller_structs &&
+			if (c->geom.x >= m->w.x + target_structs &&
 				c->geom.x + c->geom.width <=
-					m->w.x + m->w.width - scroller_structs) {
+					m->w.x + m->w.width - target_structs) {
 				need_scroller = false;
 			} else {
 				need_scroller = true;
@@ -399,7 +402,7 @@ void scroller(Monitor *m) {
 			  (ISSCROLLTILED(m->prevsel) &&
 			   (m->prevsel->scroller_proportion * max_client_width) +
 					   (root_client->scroller_proportion * max_client_width) >
-				   m->w.width - 2 * scroller_structs - cur_gappih)) &&
+				   m->w.width - 2 * target_structs - cur_gappih)) &&
 			 scroller_prefer_center)) {
 			target_geom.x = m->w.x + (m->w.width - target_geom.width) / 2;
 		} else {
@@ -407,8 +410,8 @@ void scroller(Monitor *m) {
 								? m->w.x + (m->w.width -
 											root_client->scroller_proportion *
 												max_client_width -
-											scroller_structs)
-								: m->w.x + scroller_structs;
+											target_structs)
+								: m->w.x + target_structs;
 		}
 		horizontal_check_scroller_root_inside_mon(
 			tempClients[focus_client_index], &target_geom);
